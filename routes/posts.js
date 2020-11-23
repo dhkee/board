@@ -51,7 +51,7 @@ router.post('/:id/update', function(req, res){
 });
 
 // Destroy
-router.post('/:id/destroy', function(req, res){
+router.post('/:id/delete', function(req, res){
     Post.deleteOne({_id : req.params.id}, function(err){
         if(err) return res.json(err);
         res.redirect('/posts');
