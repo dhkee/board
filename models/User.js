@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var bcrypt = require('bcryptjs');   // bcryptjs package를 변수에 담음
 
 // schema
 var userSchema = mongoose.Schema({
@@ -48,7 +49,8 @@ userSchema.path('password').validate(function(v){
         if(!user.currentPassword){
             user.invalidate('currentPassword', 'Current Password is required!');
         }
-        else if(user.currentPassword != user.originalPassword){
+        // 저장된 hash와 입력받은 password의 hash가 일치하는지 확인
+        else if(!bcrypt.compareSync(user.currentPassword, user.originalPassword)){
             user.invalidate('currentPassword', 'Current Password is inavalid!');
         }
 
@@ -57,6 +59,25 @@ userSchema.path('password').validate(function(v){
         }
     }
 });
+
+// hash password
+userSchema.pre('save', function(next){
+    var user = this;
+    
+    if(!user.isModified('password')){
+        return next();
+    }
+    else {
+        user.password = bcrypt.hashSync(user.password);
+        return next();
+    }
+});
+
+// model methods
+userSchema.methods.authenticate = function(passwrod) {
+    var user = this;
+    return bcrypt.compareSync(password, user.password);
+};
 
 // model & export
 var User = mongoose.model('user', userSchema);
